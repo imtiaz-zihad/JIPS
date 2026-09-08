@@ -120,7 +120,7 @@ public abstract class LeaveApprover
 // team lead
 public class TeamLead : LeaveApprover
 {
-    
+
 
     public override void ApproveLeave(int days)
     {
@@ -185,3 +185,207 @@ class Program2
         teamLead.ApproveLeave(20); // Leave request for 20 days requires higher approval.
     }
 }
+
+
+// 3.Iterator Pattern → Provides a way to access the elements of an aggregate object sequentially without exposing its underlying representation.
+
+public interface IIterator
+{
+    bool HasNext();
+    string Next();
+}
+
+public class StudentIterator : IIterator
+{
+    public List<string> students;
+    private int index = 0;
+
+    public StudentIterator(List<string> students)
+    {
+        this.students = students;
+    }
+
+    public bool HasNext()
+    {
+        return index < students.Count;
+    }
+
+    public string Next()
+    {
+
+        return students[index++];
+
+    }
+}
+
+public class StudentCollection
+{
+    private List<string> students = new List<string>();
+
+    public void AddStudent(string name)
+    {
+        students.Add(name);
+    }
+
+    public IIterator GetIterator()
+    {
+        return new StudentIterator(students);
+    }
+}
+
+class Program3
+{
+    public static void Main(string[] args)
+    {
+        StudentCollection studentCollection = new StudentCollection();
+        studentCollection.AddStudent("Alice");
+        studentCollection.AddStudent("Bob");
+        studentCollection.AddStudent("Charlie");
+
+        IIterator iterator = studentCollection.GetIterator();
+
+        while (iterator.HasNext())
+        {
+            string student = iterator.Next();
+            Console.WriteLine(student);
+        }
+    }
+}
+
+// 4. Mediator Pattern → Defines an object that encapsulates how a set of objects interact. This pattern promotes loose coupling by keeping objects from referring to each other explicitly, and it lets you vary their interaction independently.
+
+public interface IMediator
+{
+    void SendMessage(string message, User sender);
+}
+
+public class ChatMediator : IMediator
+{
+    private List<User> users = new List<User>();
+
+    public void AddUser(User user)
+    {
+        users.Add(user);
+    }
+
+    public void SendMessage(string message, User sender)
+    {
+        foreach (var user in users)
+        {
+            if (user != sender)
+            {
+                user.Receive(message);
+            }
+        }
+    }
+}
+
+public class User
+{
+    private string mediator;
+    public string Name { get; private set; }
+    public User(string name, string mediator)
+    {
+        Name = name;
+        this.mediator = mediator;
+    }
+
+    public void Send(string message)
+    {
+        Console.WriteLine($"{Name} sends: {message}");
+        mediator.SendMessage(message, this);
+    }
+
+    public void Receive(string message)
+    {
+        Console.WriteLine($"{Name} receives: {message}");
+    }
+
+}
+
+class Program4
+{
+    public static void Main(string[] args)
+    {
+        ChatMediator mediator = new ChatMediator();
+
+        User user1 = new User("Alice", mediator);
+        User user2 = new User("Bob", mediator);
+        User user3 = new User("Charlie", mediator);
+
+        mediator.AddUser(user1);
+        mediator.AddUser(user2);
+        mediator.AddUser(user3);
+
+        user1.Send("Hello, everyone!");
+        user2.Send("Hi Alice!");
+        user3.Send("Hey folks!");
+    }
+}
+
+// 5. Observer Pattern → Defines a one-to-many dependency between objects so that when one object changes state, all its dependents are notified and updated automatically.
+
+public interface IObserver
+{
+    void Update(string message);
+}
+
+public class Subscriber : IObserver
+{
+    private string name;
+
+    public Subscriber(string name)
+    {
+        this.name = name;
+    }
+
+    public void Update(string message)
+    {
+        Console.WriteLine($"{name} received message: {message}");
+    }
+}
+
+
+public class YoutubeChannel
+{
+    private List<IObserver> subscribers = new List<IObserver>();
+
+    public void Subscribe(IObserver subscriber)
+    {
+        subscribers.Add(subscriber);
+    }
+
+    public void Unsubscribe(IObserver subscriber)
+    {
+        subscribers.Remove(subscriber);
+    }
+
+    public void NotifySubscribers(string message)
+    {
+        foreach (var subscriber in subscribers)
+        {
+            subscriber.Update(message);
+        }
+    }
+}
+
+class Program5
+{
+    public static void Main(string[] args)
+    {
+        YoutubeChannel channel = new YoutubeChannel();
+
+        Subscriber subscriber1 = new Subscriber("Alice");
+        Subscriber subscriber2 = new Subscriber("Bob");
+
+        channel.Subscribe(subscriber1);
+        channel.Subscribe(subscriber2);
+
+        channel.NotifySubscribers("New video uploaded!");
+
+        channel.Unsubscribe(subscriber1);
+
+        channel.NotifySubscribers("Another video uploaded!");
+    }
+}
+
